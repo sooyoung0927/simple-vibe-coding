@@ -1,0 +1,60 @@
+<!-- step04: 눈송이를 150개로 늘려서 화면 곳곳에 흩뿌린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep02 눈 내리기 - step04</title>
+<style>
+  body { margin: 0; background: #0b1530; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 눈송이 여러 개를 배열에 담는다
+const flakes = [];
+for (let i = 0; i < 150; i++) {
+  flakes.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    radius: 4,
+    speed: 2
+  });
+}
+
+function update() {
+  for (const flake of flakes) {
+    flake.y = flake.y + flake.speed;
+    // 바닥을 지나가면 위로 되돌린다
+    if (flake.y > canvas.height + flake.radius) {
+      flake.y = -flake.radius;
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+  for (const flake of flakes) {
+    ctx.beginPath();
+    ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
