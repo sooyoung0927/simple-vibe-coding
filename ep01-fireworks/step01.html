@@ -1,0 +1,36 @@
+<!-- step01: 검은 캔버스를 화면 가득 만들고, 아래쪽 가운데에 하얀 원 하나를 그린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>불꽃놀이 step01</title>
+<style>
+  body { margin: 0; background: black; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  // 캔버스를 가져와서 화면 크기에 맞춘다
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // 원(폭죽)의 위치
+  let x = canvas.width / 2;
+  let y = canvas.height - 50;
+
+  // 원 하나를 그리는 함수
+  function drawCircle(cx, cy, radius, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCircle(x, y, 5, "white");
+</script>
+</body>
+</html>

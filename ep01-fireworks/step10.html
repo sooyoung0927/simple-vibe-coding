@@ -1,0 +1,126 @@
+<!-- step10: 폭죽 하나가 터질 때 나오는 입자 수를 50개에서 250개로 늘려서 더 풍성하게 만든다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>불꽃놀이 step10</title>
+<style>
+  body { margin: 0; background: black; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  // 캔버스를 가져와서 화면 크기에 맞춘다
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // 올라가는 중인 폭죽들을 담는 배열
+  // 폭죽 하나 = { x: 가로 위치, y: 세로 위치, targetY: 터질 높이 }
+  let rockets = [];
+
+  // 터진 뒤 퍼지는 입자들을 담는 배열
+  let particles = [];
+
+  // 원 하나를 그리는 함수
+  function drawCircle(cx, cy, radius, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 새 폭죽 하나를 화면 맨 아래에서 출발시킨다
+  function launch(startX, targetY) {
+    rockets.push({
+      x: startX,
+      y: canvas.height,
+      targetY: targetY
+    });
+  }
+
+  // (ex, ey) 자리에 입자 250개를 만든다
+  function explode(ex, ey) {
+    // 이번 폭죽의 색깔을 랜덤으로 고른다
+    // hsl(색상, 채도, 밝기): 색상을 0 ~ 360 중 아무 값으로 고르면 무지개 중 한 색이 된다
+    const hue = Math.floor(Math.random() * 360);
+    const color = "hsl(" + hue + ", 100%, 60%)";
+
+    for (let i = 0; i < 250; i++) {
+      // 0 ~ 360도 중 아무 방향이나 고른다
+      const angle = Math.random() * Math.PI * 2;
+      // 입자마다 빠르기를 조금씩 다르게 한다 (1 ~ 4)
+      const speed = Math.random() * 3 + 1;
+
+      particles.push({
+        x: ex,
+        y: ey,
+        vx: Math.cos(angle) * speed, // 한 프레임에 가로로 움직일 양
+        vy: Math.sin(angle) * speed, // 한 프레임에 세로로 움직일 양
+        alpha: 1,                    // 투명도 (1 = 또렷함, 0 = 안 보임)
+        color: color                 // 이 입자의 색깔
+      });
+    }
+  }
+
+  // 한 프레임을 그리는 함수 (1초에 약 60번 불린다)
+  function draw() {
+    // 화면을 검은색으로 지운다
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 폭죽들을 위로 올리고, 목표 높이에 닿은 것은 터뜨린다
+    for (let i = rockets.length - 1; i >= 0; i--) {
+      const r = rockets[i];
+      r.y = r.y - 5;
+
+      if (r.y <= r.targetY) {
+        // 터뜨리고, 다 쓴 폭죽은 배열에서 지운다
+        explode(r.x, r.y);
+        rockets.splice(i, 1);
+      } else {
+        drawCircle(r.x, r.y, 5, "white");
+      }
+    }
+
+    // 입자들을 움직이고, 흐리게 만들고, 그린다
+    // 뒤에서부터 도는 이유: 중간에 입자를 지워도 순서가 꼬이지 않게 하려고
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x = p.x + p.vx;
+      p.y = p.y + p.vy;
+      // 중력: 캔버스는 y가 커질수록 아래쪽이라,
+      // vy에 조금씩 더하면 점점 아래로 끌려간다 (키우면 더 빨리 떨어진다)
+      p.vy = p.vy + 0.05;
+      p.alpha = p.alpha - 0.01;
+
+      if (p.alpha > 0) {
+        ctx.globalAlpha = p.alpha;
+        drawCircle(p.x, p.y, 2, p.color);
+      } else {
+        // 완전히 사라진 입자는 배열에서 지운다
+        particles.splice(i, 1);
+      }
+    }
+    // 다른 그림에 영향이 없도록 투명도를 원래대로 돌려 놓는다
+    ctx.globalAlpha = 1;
+
+    // 다음 프레임에 draw를 또 불러 달라고 부탁한다
+    requestAnimationFrame(draw);
+  }
+
+  // 화면을 클릭할 때마다 새 폭죽을 하나씩 쏜다
+  canvas.addEventListener("click", function (event) {
+    launch(event.clientX, event.clientY);
+  });
+
+  // 처음 열었을 때도 가운데에서 하나 쏘아 올린다
+  launch(canvas.width / 2, canvas.height / 3);
+
+  draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!-- index: step01 ~ step16을 이전/다음 버튼으로 하나씩 넘겨보는 페이지. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep01 불꽃놀이 - 단계별 보기</title>
+<style>
+  body {
+    margin: 0;
+    background: #222;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px;
+  }
+  button {
+    font-size: 16px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+  #label {
+    font-weight: bold;
+    min-width: 110px;
+    text-align: center;
+  }
+  #desc {
+    margin: 0 16px 12px;
+    text-align: center;
+    color: #ccc;
+  }
+  iframe {
+    flex: 1;
+    border: none;
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <button id="prev">◀ 이전</button>
+  <span id="label"></span>
+  <button id="next">다음 ▶</button>
+</div>
+<p id="desc"></p>
+<iframe id="frame"></iframe>
+
+<script>
+  // 단계 목록 (파일 이름과 설명)
+  const steps = [
+    { file: "step01.html", desc: "검은 화면 아래쪽 가운데에 원 하나를 그린다." },
+    { file: "step02.html", desc: "원이 위로 올라간다." },
+    { file: "step03.html", desc: "원이 정해진 높이에서 멈춘다." },
+    { file: "step04.html", desc: "멈춘 자리에서 터져서 입자로 퍼진다." },
+    { file: "step05.html", desc: "퍼지는 입자가 점점 흐려지다가 사라진다." },
+    { file: "step06.html", desc: "클릭한 곳으로 폭죽이 올라가서 터진다. (한 번에 하나만)" },
+    { file: "step07.html", desc: "클릭할 때마다 새 폭죽이 터진다." },
+    { file: "step08.html", desc: "중력을 넣어서 불꽃이 아래로 휘면서 떨어진다." },
+    { file: "step09.html", desc: "폭죽마다 색깔이 랜덤으로 바뀐다." },
+    { file: "step10.html", desc: "입자를 250개로 늘려서 더 풍성하게 터진다." },
+    { file: "step11.html", desc: "반투명 검정으로 지워서 입자 뒤에 잔상(꼬리)이 남는다." },
+    { file: "step12.html", desc: "마찰을 넣어서 입자가 점점 느려진다." },
+    { file: "step13.html", desc: "처음 속도를 올려서 \"펑!\" 하고 크게 터진다." },
+    { file: "step14.html", desc: "빛을 더하듯 그려서 겹치는 곳이 더 밝게 빛난다." },
+    { file: "step15.html", desc: "올라가는 폭죽이 불씨를 흘린다." },
+    { file: "step16.html", desc: "폭죽마다 터지는 크기가 조금씩 다르다. 완성!" }
+  ];
+
+  // 지금 보고 있는 단계 번호 (0부터 시작)
+  let current = 0;
+
+  const frame = document.getElementById("frame");
+  const label = document.getElementById("label");
+  const desc = document.getElementById("desc");
+  const prevButton = document.getElementById("prev");
+  const nextButton = document.getElementById("next");
+
+  // 현재 단계를 화면에 보여 준다
+  function show() {
+    frame.src = steps[current].file;
+    label.textContent = "step " + (current + 1) + " / " + steps.length;
+    desc.textContent = steps[current].desc;
+
+    // 처음이면 이전 버튼, 마지막이면 다음 버튼을 끈다
+    prevButton.disabled = (current === 0);
+    nextButton.disabled = (current === steps.length - 1);
+  }
+
+  prevButton.addEventListener("click", function () {
+    if (current > 0) {
+      current = current - 1;
+      show();
+    }
+  });
+
+  nextButton.addEventListener("click", function () {
+    if (current < steps.length - 1) {
+      current = current + 1;
+      show();
+    }
+  });
+
+  show();
+</script>
+</body>
+</html>
