@@ -1,0 +1,44 @@
+<!-- step02: 눈송이가 매 프레임 일정한 속도로 아래로 떨어진다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep02 눈 내리기 - step02</title>
+<style>
+  body { margin: 0; background: #0b1530; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 눈송이 하나
+const flake = { x: canvas.width / 2, y: 20, radius: 6, speed: 2 };
+
+function update() {
+  flake.y = flake.y + flake.speed;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
