@@ -1,0 +1,653 @@
+<!-- christmas: ep02 완성본(step08)의 눈 위에 크리스마스 밤 풍경을 한 번에 더한 꾸밈 버전. -->
+<!--   밤하늘, 별, 달, 산, 눈 언덕, 나무, 트리와 선물, 집과 굴뚝 연기, 가로등, 쌓이는 눈, 걸어가는 사람, 마우스 바람 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep02 눈 내리기 - 크리스마스</title>
+<style>
+  body { margin: 0; background: #040818; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// =====================================================
+// 기본 준비
+// =====================================================
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let W = 0;     // 화면 너비
+let H = 0;     // 화면 높이
+let unit = 1;  // 화면 크기에 맞춰 물체 크기를 키우고 줄이는 배율
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  unit = Math.min(W, H) / 800;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let time = 0; // 지금까지 흐른 프레임 수 (깜빡임, 반짝임에 쓴다)
+
+// 전구 색깔들
+const LIGHT_COLORS = ["#ff4d4d", "#ffd93b", "#4da6ff", "#5cff8a", "#ff7af5"];
+
+// 땅(눈 언덕)의 높이: 가운데가 살짝 볼록하다
+function groundY(x) {
+  return H * 0.8 - Math.sin((x / W) * Math.PI) * H * 0.04;
+}
+
+// 쌓인 눈 두께 (시간이 지나면 조금씩 두꺼워진다)
+let snowDepth = 0;
+const MAX_SNOW = 5;   // 최대로 쌓이는 두께 (키우면 더 많이 쌓인다)
+function snowPx() {
+  return snowDepth * unit;
+}
+
+// =====================================================
+// 그리기 도우미
+// =====================================================
+function circle(x, y, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function triangle(x1, y1, x2, y2, x3, y3, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.lineTo(x3, y3);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// 반짝이는 작은 전구 하나
+function bulb(x, y, r, color, brightness) {
+  ctx.globalAlpha = brightness;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = r * 3;
+  circle(x, y, r, color);
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+}
+
+// 별 모양 (뾰족한 점 5개)
+function drawStarShape(cx, cy, outer, inner, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const r = (i % 2 === 0) ? outer : inner;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    const px = cx + Math.cos(a) * r;
+    const py = cy + Math.sin(a) * r;
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+// =====================================================
+// 하늘: 그라데이션, 별, 달
+// =====================================================
+function drawSky() {
+  // 위는 아주 어둡고, 땅에 가까울수록 살짝 밝은 남색
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#040818");
+  g.addColorStop(1, "#24345f");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// 별은 화면 비율(0 ~ 1)로 저장해서 창 크기가 바뀌어도 자리를 지킨다
+const stars = [];
+for (let i = 0; i < 120; i++) {
+  stars.push({
+    x: Math.random(),
+    y: Math.random() * 0.55,
+    r: 0.5 + Math.random() * 1.2,
+    phase: Math.random() * Math.PI * 2,  // 깜빡임 시작 위치
+    speed: 0.01 + Math.random() * 0.03   // 깜빡임 빠르기
+  });
+}
+
+function drawStars() {
+  for (const s of stars) {
+    // sin으로 0 ~ 1 사이를 천천히 오가며 밝아졌다 어두워진다
+    const twinkle = 0.5 + 0.5 * Math.sin(time * s.speed + s.phase);
+    ctx.globalAlpha = 0.25 + 0.6 * twinkle;
+    circle(s.x * W, s.y * H, s.r * unit, "#ffffff");
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawMoon() {
+  const mx = W * 0.82;
+  const my = H * 0.17;
+  const r = 38 * unit;
+
+  // 달 주변에 은은하게 번지는 빛
+  const glow = ctx.createRadialGradient(mx, my, r * 0.5, mx, my, r * 4);
+  glow.addColorStop(0, "rgba(255, 250, 220, 0.35)");
+  glow.addColorStop(1, "rgba(255, 250, 220, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(mx - r * 4, my - r * 4, r * 8, r * 8);
+
+  circle(mx, my, r, "#fffbe8");
+}
+
+// =====================================================
+// 산과 땅
+// =====================================================
+// sin을 두 개 섞어서 울퉁불퉁한 산 능선을 만든다
+function drawMountains(baseY, height, seed, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  for (let x = 0; x <= W + 10; x += 10) {
+    const k = x / W;
+    const y = baseY - height * (0.6 + 0.3 * Math.sin(k * 7 + seed) + 0.1 * Math.sin(k * 23 + seed * 3));
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// 눈 덮인 언덕. depth만큼 위로 올려 그리면 "쌓인 눈"이 된다
+function drawGround(depth) {
+  const g = ctx.createLinearGradient(0, H * 0.72, 0, H);
+  g.addColorStop(0, "#f2f6fd");
+  g.addColorStop(1, "#b9c7e0");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 10) {
+    ctx.lineTo(x, groundY(x) - depth);
+  }
+  ctx.lineTo(W, groundY(W) - depth);
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// =====================================================
+// 나무와 크리스마스 트리
+// =====================================================
+// 침엽수 하나: 줄기 + 잎 3층 + 꼭대기마다 쌓인 눈
+// size는 나무 전체 높이
+function drawPine(x, baseY, size, leafColor) {
+  ctx.fillStyle = "#3b2a1e";
+  ctx.fillRect(x - size * 0.05, baseY - size * 0.15, size * 0.1, size * 0.15);
+
+  for (let i = 0; i < 3; i++) {
+    const bottom = baseY - size * 0.12 - i * size * 0.25;
+    const top = bottom - size * 0.4;
+    const half = size * (0.35 - i * 0.08);   // 위층일수록 좁다
+    triangle(x, top, x - half, bottom, x + half, bottom, leafColor);
+    triangle(x, top, x - half * 0.3, top + size * 0.12, x + half * 0.3, top + size * 0.12, "#e6eef9");
+  }
+}
+
+// 배경 나무들 (x는 화면 비율, s는 크기)
+const pines = [
+  { x: 0.05, s: 150 },
+  { x: 0.12, s: 110 },
+  { x: 0.58, s: 90 },
+  { x: 0.88, s: 130 },
+  { x: 0.95, s: 100 }
+];
+
+function drawPines() {
+  for (const p of pines) {
+    const x = p.x * W;
+    drawPine(x, groundY(x), p.s * unit, "#132f26");
+  }
+}
+
+// 트리 아래 선물 상자 (dx, w, h는 트리 크기에 대한 비율)
+const gifts = [
+  { dx: -0.28, w: 0.16, h: 0.12, color: "#c0392b" },
+  { dx: 0.22, w: 0.13, h: 0.10, color: "#2e86de" },
+  { dx: 0.38, w: 0.10, h: 0.14, color: "#27ae60" }
+];
+
+function drawGift(x, baseY, w, h, color) {
+  // 상자
+  ctx.fillStyle = color;
+  ctx.fillRect(x - w / 2, baseY - h, w, h);
+  // 리본 (세로, 가로)
+  ctx.fillStyle = "#f6d365";
+  ctx.fillRect(x - w * 0.08, baseY - h, w * 0.16, h);
+  ctx.fillRect(x - w / 2, baseY - h * 0.6, w, h * 0.14);
+  // 위에 묶은 매듭
+  circle(x - w * 0.12, baseY - h, w * 0.1, "#f6d365");
+  circle(x + w * 0.12, baseY - h, w * 0.1, "#f6d365");
+}
+
+function drawChristmasTree() {
+  const x = W * 0.27;
+  const baseY = groundY(x);
+  const size = 260 * unit;
+
+  drawPine(x, baseY, size, "#1d5a3a");
+
+  // 층마다 전구를 한 줄씩 단다 (아래층 7개, 가운데 5개, 위층 3개)
+  let k = 0;  // 전구 번호 (깜빡이는 순서를 엇갈리게 하려고)
+  for (let i = 0; i < 3; i++) {
+    const bottom = baseY - size * 0.12 - i * size * 0.25;
+    const half = size * (0.35 - i * 0.08);
+    const y = bottom - size * 0.4 * 0.3;  // 층 아래에서 30% 높이
+    const w = half * 0.66;                // 그 높이에서 잎의 반 너비
+    const n = 7 - i * 2;
+    for (let j = 0; j < n; j++) {
+      const t = j / (n - 1);
+      const lx = x - w + w * 2 * t;
+      const ly = y + Math.sin(t * Math.PI) * size * 0.03;  // 가운데가 살짝 처지게
+      const brightness = 0.55 + 0.45 * Math.sin(time * 0.06 + k * 1.3);
+      bulb(lx, ly, 4 * unit, LIGHT_COLORS[k % LIGHT_COLORS.length], brightness);
+      k++;
+    }
+  }
+
+  // 꼭대기 별 (천천히 숨 쉬듯 빛난다)
+  const topY = baseY - size * 0.12 - 2 * size * 0.25 - size * 0.4;
+  ctx.shadowColor = "#ffd84d";
+  ctx.shadowBlur = (15 + 10 * Math.sin(time * 0.04)) * unit;
+  drawStarShape(x, topY, 16 * unit, 7 * unit, "#ffe066");
+  ctx.shadowBlur = 0;
+
+  for (const g of gifts) {
+    drawGift(x + g.dx * size, baseY, g.w * size, g.h * size, g.color);
+  }
+}
+
+// =====================================================
+// 집, 굴뚝 연기
+// =====================================================
+const chimney = { x: 0, y: 0 };  // 연기가 나올 곳 (집을 그릴 때 정해진다)
+
+function drawHouse() {
+  const u = unit;
+  const hx = W * 0.72;
+  const base = groundY(hx);
+  const w = 170 * u;
+  const h = 110 * u;
+  const left = hx - w / 2;
+  const roofY = base - h;
+
+  // 굴뚝 (지붕보다 먼저 그려서 아랫부분이 지붕에 가려지게)
+  const chimX = hx + w * 0.2;
+  ctx.fillStyle = "#5a3326";
+  ctx.fillRect(chimX, roofY - 80 * u, 24 * u, 60 * u);
+  ctx.fillStyle = "#eef3fb";
+  ctx.fillRect(chimX - 3 * u, roofY - 86 * u, 30 * u, 8 * u);
+  chimney.x = chimX + 12 * u;
+  chimney.y = roofY - 86 * u;
+
+  // 벽
+  ctx.fillStyle = "#7a4430";
+  ctx.fillRect(left, roofY, w, h);
+
+  // 지붕: 흰 삼각형 위에 어두운 삼각형을 조금 아래로 겹치면 가장자리에 눈이 쌓인 것처럼 보인다
+  triangle(hx, roofY - 92 * u, left - 24 * u, roofY + 4 * u, left + w + 24 * u, roofY + 4 * u, "#eef3fb");
+  triangle(hx, roofY - 80 * u, left - 16 * u, roofY + 6 * u, left + w + 16 * u, roofY + 6 * u, "#3a2626");
+
+  // 불 켜진 창문
+  const winX = left + w * 0.14;
+  const winY = roofY + h * 0.28;
+  const winW = 44 * u;
+  const winH = 38 * u;
+  ctx.shadowColor = "#ffb347";
+  ctx.shadowBlur = 30 * u;
+  ctx.fillStyle = "#ffd27a";
+  ctx.fillRect(winX, winY, winW, winH);
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "#4a2a1c";
+  ctx.lineWidth = 3 * u;
+  ctx.strokeRect(winX, winY, winW, winH);
+  ctx.beginPath();
+  ctx.moveTo(winX + winW / 2, winY);
+  ctx.lineTo(winX + winW / 2, winY + winH);
+  ctx.moveTo(winX, winY + winH / 2);
+  ctx.lineTo(winX + winW, winY + winH / 2);
+  ctx.stroke();
+
+  // 문, 문고리, 리스
+  const doorW = 34 * u;
+  const doorH = 62 * u;
+  const doorX = left + w * 0.62;
+  ctx.fillStyle = "#4a2a1c";
+  ctx.fillRect(doorX, base - doorH, doorW, doorH);
+  circle(doorX + doorW * 0.8, base - doorH * 0.45, 2.5 * u, "#f6d365");
+  ctx.strokeStyle = "#2e7d4f";
+  ctx.lineWidth = 5 * u;
+  ctx.beginPath();
+  ctx.arc(doorX + doorW / 2, base - doorH * 0.72, 8 * u, 0, Math.PI * 2);
+  ctx.stroke();
+  circle(doorX + doorW / 2, base - doorH * 0.72 + 8 * u, 3 * u, "#d63031");
+
+  // 처마 끝에 단 전구 줄 (두 묶음이 번갈아 켜진다)
+  const lightsY = roofY + 10 * u;
+  ctx.strokeStyle = "#222222";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(left - 12 * u, lightsY);
+  ctx.lineTo(left + w + 12 * u, lightsY);
+  ctx.stroke();
+  const n = 12;
+  for (let i = 0; i < n; i++) {
+    const lx = left - 12 * u + (w + 24 * u) * (i / (n - 1));
+    const on = (Math.floor(time / 40) + i) % 2 === 0;
+    bulb(lx, lightsY + 3 * u, 3.5 * u, LIGHT_COLORS[i % LIGHT_COLORS.length], on ? 1 : 0.3);
+  }
+}
+
+// 굴뚝 연기: 조금씩 커지고 흐려지면서 위로 올라간다
+const smoke = [];
+
+function updateSmoke() {
+  if (time % 8 === 0) {
+    smoke.push({ x: chimney.x, y: chimney.y, r: 5 * unit, alpha: 0.45 });
+  }
+  for (let i = smoke.length - 1; i >= 0; i--) {
+    const p = smoke[i];
+    p.y = p.y - 0.4;
+    p.x = p.x + 0.15 + wind * 0.4;   // 바람 쪽으로 기운다
+    p.r = p.r + 0.06 * unit;
+    p.alpha = p.alpha - 0.0015;
+    if (p.alpha <= 0) {
+      smoke.splice(i, 1);
+    }
+  }
+}
+
+function drawSmoke() {
+  for (const p of smoke) {
+    circle(p.x, p.y, p.r, "rgba(190, 195, 210, " + p.alpha + ")");
+  }
+}
+
+// =====================================================
+// 가로등
+// =====================================================
+function lampInfo() {
+  const x = W * 0.45;
+  const bottom = groundY(x);
+  return { x: x, top: bottom - 170 * unit, bottom: bottom };
+}
+
+function drawLamp() {
+  const lamp = lampInfo();
+  const u = unit;
+
+  // 기둥과 머리
+  ctx.fillStyle = "#1c2233";
+  ctx.fillRect(lamp.x - 3 * u, lamp.top, 6 * u, lamp.bottom - lamp.top);
+  ctx.fillRect(lamp.x - 12 * u, lamp.top - 6 * u, 24 * u, 8 * u);
+
+  // 아래로 퍼지는 불빛 (위는 진하고 아래로 갈수록 옅다)
+  const g = ctx.createLinearGradient(0, lamp.top, 0, lamp.bottom);
+  g.addColorStop(0, "rgba(255, 214, 140, 0.35)");
+  g.addColorStop(1, "rgba(255, 214, 140, 0.03)");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(lamp.x - 8 * u, lamp.top + 2 * u);
+  ctx.lineTo(lamp.x + 8 * u, lamp.top + 2 * u);
+  ctx.lineTo(lamp.x + 75 * u, lamp.bottom);
+  ctx.lineTo(lamp.x - 75 * u, lamp.bottom);
+  ctx.closePath();
+  ctx.fill();
+
+  // 전구
+  ctx.shadowColor = "#ffd28c";
+  ctx.shadowBlur = 25 * u;
+  circle(lamp.x, lamp.top + 4 * u, 6 * u, "#fff3d6");
+  ctx.shadowBlur = 0;
+}
+
+// 가로등이 눈 바닥을 비추는 동그란 빛
+function drawLampPool() {
+  const lamp = lampInfo();
+  ctx.fillStyle = "rgba(255, 220, 150, 0.25)";
+  ctx.beginPath();
+  ctx.ellipse(lamp.x, lamp.bottom - snowPx(), 90 * unit, 14 * unit, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// (x, y)가 가로등 불빛 안에 있는지
+function inLampLight(x, y) {
+  const lamp = lampInfo();
+  if (y < lamp.top || y > lamp.bottom) {
+    return false;
+  }
+  const t = (y - lamp.top) / (lamp.bottom - lamp.top);  // 위 0 ~ 아래 1
+  const half = (8 + 67 * t) * unit;                      // 그 높이에서 불빛의 반 너비
+  return Math.abs(x - lamp.x) < half;
+}
+
+// =====================================================
+// 걸어가는 사람과 발자국
+// =====================================================
+const walker = { x: -60, phase: 0, distance: 0, foot: 1 };
+const footprints = [];
+
+function walkerScale() {
+  return unit * 0.75;
+}
+
+function updateWalker() {
+  const s = walkerScale();
+  const speed = 1.0 * s;  // 다리 흔드는 속도와 맞춰서 미끄러지듯 보이지 않게 한다
+  walker.x = walker.x + speed;
+  walker.phase = walker.phase + 0.12;
+  walker.distance = walker.distance + speed;
+
+  // 일정 거리마다 발자국을 하나씩 남긴다 (왼발, 오른발 번갈아)
+  if (walker.distance > 14 * s) {
+    walker.distance = 0;
+    walker.foot = -walker.foot;
+    footprints.push({
+      x: walker.x,
+      y: groundY(walker.x) - snowPx() + walker.foot * 2 * s,
+      alpha: 0.5
+    });
+  }
+
+  // 오른쪽 끝을 지나가면 왼쪽에서 다시 걸어온다
+  if (walker.x > W + 60) {
+    walker.x = -60;
+  }
+
+  // 발자국은 눈에 덮이듯 천천히 사라진다
+  for (let i = footprints.length - 1; i >= 0; i--) {
+    footprints[i].alpha = footprints[i].alpha - 0.0015;
+    if (footprints[i].alpha <= 0) {
+      footprints.splice(i, 1);
+    }
+  }
+}
+
+function drawFootprints() {
+  for (const f of footprints) {
+    ctx.fillStyle = "rgba(110, 130, 175, " + f.alpha + ")";
+    ctx.beginPath();
+    ctx.ellipse(f.x, f.y, 4 * unit, 1.6 * unit, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// 팔다리 하나: (x, y)에서 angle 방향으로 length만큼 선을 긋는다 (angle 0 = 바로 아래)
+function limb(x, y, angle, length, color, width) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + Math.sin(angle) * length, y + Math.cos(angle) * length);
+  ctx.stroke();
+}
+
+function drawWalker() {
+  const s = walkerScale();
+  const px = walker.x;
+  const py = groundY(px) - snowPx();   // 쌓인 눈 위를 걷는다
+  const swing = Math.sin(walker.phase) * 0.45;  // 다리, 팔이 흔들리는 각도
+
+  // 뒤쪽 다리와 팔 (조금 어둡게)
+  limb(px, py - 28 * s, -swing, 28 * s, "#1c1c28", 5 * s);
+  limb(px, py - 56 * s, swing, 24 * s, "#263f66", 5 * s);
+
+  // 몸통 (코트)
+  ctx.fillStyle = "#3b5b8c";
+  ctx.fillRect(px - 9 * s, py - 62 * s, 18 * s, 36 * s);
+
+  // 앞쪽 다리와 팔
+  limb(px, py - 28 * s, swing, 28 * s, "#2b2b3a", 5 * s);
+  limb(px, py - 56 * s, -swing, 24 * s, "#3b5b8c", 5 * s);
+
+  // 빨간 목도리
+  ctx.fillStyle = "#d63031";
+  ctx.fillRect(px - 9 * s, py - 64 * s, 18 * s, 5 * s);
+  ctx.fillRect(px - 9 * s, py - 62 * s, 5 * s, 14 * s);
+
+  // 머리
+  circle(px, py - 72 * s, 9 * s, "#f1c9a5");
+
+  // 산타 모자 (빨간 삼각형 + 흰 테두리 + 흰 방울)
+  triangle(px - 9 * s, py - 79 * s, px + 9 * s, py - 79 * s, px + 13 * s, py - 97 * s, "#d63031");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(px - 10 * s, py - 81 * s, 20 * s, 5 * s);
+  circle(px + 13 * s, py - 97 * s, 3.5 * s, "#ffffff");
+}
+
+// =====================================================
+// 눈송이 (ep02 step08과 같은 움직임 + 바람 + 가로등 빛 + 땅에 닿으면 쌓임)
+// =====================================================
+const flakes = [];
+for (let i = 0; i < 150; i++) {
+  const radius = 1 + Math.random() * 4;
+  flakes.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    radius: radius,
+    speed: 0.5 + radius * 0.5,
+    angle: Math.random() * Math.PI * 2,
+    sway: 0.3 + Math.random() * 0.7,
+    alpha: 0.4 + Math.random() * 0.6
+  });
+}
+
+// 바람: 마우스가 화면 오른쪽에 있으면 오른쪽으로, 왼쪽에 있으면 왼쪽으로 분다
+let wind = 0;
+let targetWind = 0;
+canvas.addEventListener("mousemove", function (event) {
+  targetWind = (event.clientX / W - 0.5) * 3;
+});
+canvas.addEventListener("mouseleave", function () {
+  targetWind = 0;
+});
+
+function updateFlakes() {
+  for (const flake of flakes) {
+    flake.y = flake.y + flake.speed;
+    flake.angle = flake.angle + 0.02 * flake.sway;
+    flake.x = flake.x + Math.sin(flake.angle) * flake.sway;
+    flake.x = flake.x + wind * flake.radius * 0.3;  // 큰(가까운) 눈일수록 바람을 더 탄다
+
+    // 쌓인 눈에 닿으면 위로 되돌린다
+    if (flake.y > groundY(flake.x) - snowPx()) {
+      flake.y = -flake.radius;
+      flake.x = Math.random() * W;
+    }
+    if (flake.x < -10) flake.x = W + 10;
+    if (flake.x > W + 10) flake.x = -10;
+  }
+}
+
+function drawFlakes() {
+  ctx.shadowColor = "white";
+  ctx.shadowBlur = 6;
+  for (const flake of flakes) {
+    let color = "rgba(255, 255, 255, " + flake.alpha + ")";
+    // 가로등 불빛 안을 지나는 눈은 따뜻한 색으로 더 밝게
+    if (inLampLight(flake.x, flake.y)) {
+      color = "rgba(255, 236, 190, " + Math.min(1, flake.alpha + 0.4) + ")";
+    }
+    circle(flake.x, flake.y, flake.radius, color);
+  }
+  ctx.shadowBlur = 0;
+}
+
+// =====================================================
+// 글자
+// =====================================================
+function drawGreeting() {
+  const a = Math.min(1, time / 180) * 0.9;  // 처음 3초 동안 서서히 나타난다
+  ctx.textAlign = "left";
+  ctx.font = "italic " + Math.round(46 * unit) + "px Georgia, serif";
+  ctx.fillStyle = "rgba(255, 240, 220, " + a + ")";
+  ctx.shadowColor = "rgba(255, 200, 120, 0.8)";
+  ctx.shadowBlur = 18 * unit;
+  ctx.fillText("Merry Christmas", 40 * unit, 90 * unit);
+  ctx.shadowBlur = 0;
+
+  ctx.textAlign = "center";
+  ctx.font = Math.max(12, Math.round(15 * unit)) + "px sans-serif";
+  ctx.fillStyle = "rgba(60, 80, 120, " + a * 0.7 + ")";
+  ctx.fillText("마우스를 좌우로 움직이면 바람이 불어요", W / 2, H - 24 * unit);
+}
+
+// =====================================================
+// 매 프레임: 뒤에 있는 것부터 앞에 있는 것 순서로 그린다
+// =====================================================
+function loop() {
+  time++;
+  if (snowDepth < MAX_SNOW) {
+    snowDepth = snowDepth + 0.002;
+  }
+  wind = wind + (targetWind - wind) * 0.02;  // 바람이 갑자기 바뀌지 않고 서서히 따라간다
+
+  drawSky();
+  drawStars();
+  drawMoon();
+  drawMountains(H * 0.78, H * 0.25, 1, "#1a2550");  // 먼 산 (조금 밝게)
+  drawMountains(H * 0.8, H * 0.15, 4, "#141c3d");   // 가까운 산 (더 어둡게)
+  drawGround(0);
+
+  drawPines();
+  drawChristmasTree();
+  drawHouse();
+  updateSmoke();
+  drawSmoke();
+  drawLamp();
+
+  drawGround(snowPx());   // 쌓인 눈이 나무, 집, 선물의 아랫부분을 덮는다
+  drawLampPool();
+
+  updateWalker();
+  drawFootprints();
+  drawWalker();
+
+  updateFlakes();
+  drawFlakes();
+
+  drawGreeting();
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
