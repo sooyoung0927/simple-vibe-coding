@@ -1,50 +1,56 @@
 <!-- step02: 매 프레임마다 화면을 지우고 다시 그려서, 원이 위로 올라가게 한다. -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>불꽃놀이 step02</title>
-<style>
-  body { margin: 0; background: black; overflow: hidden; }
-  canvas { display: block; }
-</style>
-</head>
-<body>
-<canvas id="canvas"></canvas>
-<script>
-  // 캔버스를 가져와서 화면 크기에 맞춘다
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  <head>
+    <meta charset="UTF-8" />
+    <title>불꽃놀이 step02</title>
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      // 캔버스를 가져와서 화면 크기에 맞춘다
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-  // 원(폭죽)의 위치
-  let x = canvas.width / 2;
-  let y = canvas.height - 50;
+      // 원(폭죽)의 위치
+      let x = canvas.width / 2;
+      let y = canvas.height - 50;
 
-  // 원 하나를 그리는 함수
-  function drawCircle(cx, cy, radius, color) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
+      // 원 하나를 그리는 함수
+      function drawCircle(cx, cy, radius, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-  // 한 프레임을 그리는 함수 (1초에 약 60번 불린다)
-  function draw() {
-    // 화면을 검은색으로 지운다
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // 한 프레임을 그리는 함수 (1초에 약 60번 불린다)
+      function draw() {
+        // 화면을 검은색으로 지운다
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // y가 작아질수록 위쪽이다
-    y = y - 5;
-    drawCircle(x, y, 5, "white");
+        // y가 작아질수록 위쪽이다
+        y = y - 5;
+        drawCircle(x, y, 5, 'white');
 
-    // 다음 프레임에 draw를 또 불러 달라고 부탁한다
-    requestAnimationFrame(draw);
-  }
+        // 다음 프레임에 draw를 또 불러 달라고 부탁한다
+        requestAnimationFrame(draw);
+      }
 
-  draw();
-</script>
-</body>
+      draw();
+    </script>
+  </body>
 </html>

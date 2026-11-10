@@ -1,0 +1,48 @@
+<!-- step03: 화면 아래로 사라지면 다시 위에서 나타난다. (끝없이 반복) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep02 눈 내리기 - step03</title>
+<style>
+  body { margin: 0; background: #0b1530; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 눈송이 하나
+const flake = { x: canvas.width / 2, y: 20, radius: 6, speed: 2 };
+
+function update() {
+  flake.y = flake.y + flake.speed;
+  // 바닥을 지나가면 위로 되돌린다
+  if (flake.y > canvas.height + flake.radius) {
+    flake.y = -flake.radius;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
