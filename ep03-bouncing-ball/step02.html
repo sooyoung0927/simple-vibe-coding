@@ -1,0 +1,45 @@
+<!-- step02: 중력을 더해서 공이 점점 빨라지며 떨어진다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep03 공 튀기기 - step02</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 공 하나 (vy: 아래로 향하는 속도)
+const ball = { x: canvas.width / 2, y: 60, r: 30, vy: 0 };
+const gravity = 0.5; // 매 프레임마다 속도가 이만큼 빨라진다
+
+function update() {
+  ball.vy += gravity;
+  ball.y += ball.vy;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#e63946";
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
