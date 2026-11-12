@@ -1,0 +1,149 @@
+<!-- step08: 마무리: 클릭하면 던지기, 좌우 벽 튕김, 바닥 마찰, 굴러가는 줄무늬, 창 크기 대응. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep03 공 튀기기 - step08</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+  #tip { position: fixed; top: 12px; left: 0; right: 0; text-align: center; color: #aab; font: 14px sans-serif; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="tip">화면을 클릭하면 공을 던져요</div>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+let floorY;
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  floorY = canvas.height - 60;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 공 하나 (vx: 옆으로, vy: 아래로, angle: 굴러간 각도)
+const ball = { x: canvas.width / 2, y: 60, r: 30, vx: 0, vy: 0, angle: 0 };
+const gravity = 0.5;
+const bounce = 0.75;
+let squash = 0;
+
+function update() {
+  ball.vy += gravity;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // 좌우 벽에 부딪히면 튕긴다
+  if (ball.x - ball.r < 0) {
+    ball.x = ball.r;
+    ball.vx = -ball.vx * bounce;
+  }
+  if (ball.x + ball.r > canvas.width) {
+    ball.x = canvas.width - ball.r;
+    ball.vx = -ball.vx * bounce;
+  }
+
+  // 바닥에 닿으면 튀어 오른다
+  if (ball.y + ball.r > floorY) {
+    ball.y = floorY - ball.r;
+    if (Math.abs(ball.vy) > 2) {
+      squash = Math.min(Math.abs(ball.vy) * 0.02, 0.35);
+    }
+    ball.vy = -ball.vy * bounce;
+    if (Math.abs(ball.vy) < 2) {
+      ball.vy = 0;
+    }
+  }
+
+  // 바닥에 붙어 있을 땐 마찰 때문에 옆 속도가 점점 줄어든다
+  if (ball.vy === 0 && ball.y + ball.r >= floorY) {
+    ball.vx *= 0.98;
+    if (Math.abs(ball.vx) < 0.05) {
+      ball.vx = 0;
+    }
+  }
+
+  // 옆으로 간 거리만큼 공이 굴러간다 (각도 = 거리 / 반지름)
+  ball.angle += ball.vx / ball.r;
+  squash *= 0.85;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 바닥
+  ctx.fillStyle = "#2c3650";
+  ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
+
+  // 그림자
+  const height = floorY - (ball.y + ball.r);
+  const far = Math.min(height / 400, 1);
+  ctx.fillStyle = "rgba(0, 0, 0, " + (0.4 - far * 0.3) + ")";
+  ctx.beginPath();
+  ctx.ellipse(ball.x, floorY + 6, ball.r * (1.1 - far * 0.5), 7 * (1.1 - far * 0.5), 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 공
+  const stretch = Math.min(Math.abs(ball.vy) * 0.007, 0.15);
+  const scaleY = 1 + stretch - squash;
+  const scaleX = 1 / scaleY;
+  ctx.save();
+  ctx.translate(ball.x, ball.y + ball.r);
+  ctx.scale(scaleX, scaleY);
+
+  const shade = ctx.createRadialGradient(-ball.r * 0.35, -ball.r * 1.35, ball.r * 0.1, 0, -ball.r, ball.r);
+  shade.addColorStop(0, "#ff9a8b");
+  shade.addColorStop(0.5, "#e63946");
+  shade.addColorStop(1, "#7a1020");
+  ctx.fillStyle = shade;
+  ctx.beginPath();
+  ctx.arc(0, -ball.r, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 굴러가는 줄무늬: 공 안쪽만 잘라서, 각도만큼 돌린 띠를 그린다
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, -ball.r, ball.r, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.translate(0, -ball.r);
+  ctx.rotate(ball.angle);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+  ctx.fillRect(-ball.r, -ball.r * 0.14, ball.r * 2, ball.r * 0.28);
+  ctx.restore();
+
+  // 줄무늬 위에 다시 어두운 가장자리를 살짝 덮어 입체감 유지
+  const edge = ctx.createRadialGradient(0, -ball.r, ball.r * 0.5, 0, -ball.r, ball.r);
+  edge.addColorStop(0, "rgba(0, 0, 0, 0)");
+  edge.addColorStop(1, "rgba(0, 0, 0, 0.35)");
+  ctx.fillStyle = edge;
+  ctx.beginPath();
+  ctx.arc(0, -ball.r, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 하이라이트
+  ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+  ctx.beginPath();
+  ctx.ellipse(-ball.r * 0.4, -ball.r * 1.4, ball.r * 0.22, ball.r * 0.14, -0.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// 클릭한 곳에서 공을 던진다 (옆 속도는 랜덤)
+canvas.addEventListener("click", function (e) {
+  ball.x = e.clientX;
+  ball.y = e.clientY;
+  ball.vx = (Math.random() - 0.5) * 14;
+  ball.vy = -Math.random() * 6;
+});
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
