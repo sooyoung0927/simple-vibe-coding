@@ -1,0 +1,82 @@
+<!-- step06: 부딪힐 때 납작하게 찌그러지고, 빠르게 움직일 땐 길쭉하게 늘어난다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep03 공 튀기기 - step06</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const floorY = canvas.height - 60; // 바닥 높이
+
+// 공 하나 (vy: 아래로 향하는 속도)
+const ball = { x: canvas.width / 2, y: 60, r: 30, vy: 0 };
+const gravity = 0.5;
+const bounce = 0.75; // 튈 때 속도가 75%만 남는다
+let squash = 0; // 부딪힌 순간 납작해지는 정도 (시간이 지나면 0으로 돌아온다)
+
+function update() {
+  ball.vy += gravity;
+  ball.y += ball.vy;
+
+  // 바닥에 닿으면 반대로 튀어 오른다
+  if (ball.y + ball.r > floorY) {
+    ball.y = floorY - ball.r;
+    // 세게 부딪힐수록 더 납작해진다
+    if (Math.abs(ball.vy) > 2) {
+      squash = Math.min(Math.abs(ball.vy) * 0.02, 0.35);
+    }
+    ball.vy = -ball.vy * bounce;
+    // 튀는 속도가 너무 작으면 멈춘다 (안 그러면 바닥에서 계속 덜덜 떤다)
+    if (Math.abs(ball.vy) < 2) {
+      ball.vy = 0;
+    }
+  }
+  squash *= 0.85; // 찌그러짐이 빠르게 풀린다
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 바닥
+  ctx.fillStyle = "#2c3650";
+  ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
+  // 그림자: 공이 높이 있을수록 작고 옅다
+  const height = floorY - (ball.y + ball.r);
+  const far = Math.min(height / 400, 1); // 0(바닥) ~ 1(아주 높음)
+  ctx.fillStyle = "rgba(0, 0, 0, " + (0.4 - far * 0.3) + ")";
+  ctx.beginPath();
+  ctx.ellipse(ball.x, floorY + 6, ball.r * (1.1 - far * 0.5), 7 * (1.1 - far * 0.5), 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 공: 빠르면 세로로 길쭉, 부딪히면 납작하게 (공의 바닥 점을 기준으로 늘이고 줄인다)
+  const stretch = Math.min(Math.abs(ball.vy) * 0.007, 0.15);
+  const scaleY = 1 + stretch - squash;
+  const scaleX = 1 / scaleY; // 부피가 비슷하게 유지되도록
+  ctx.save();
+  ctx.translate(ball.x, ball.y + ball.r);
+  ctx.scale(scaleX, scaleY);
+  ctx.fillStyle = "#e63946";
+  ctx.beginPath();
+  ctx.arc(0, -ball.r, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
