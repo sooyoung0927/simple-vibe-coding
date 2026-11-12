@@ -1,0 +1,56 @@
+<!-- step03: 바닥을 그리고, 닿으면 속도가 줄어든 채로 튀어 오른다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep03 공 튀기기 - step03</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const floorY = canvas.height - 60; // 바닥 높이
+
+// 공 하나 (vy: 아래로 향하는 속도)
+const ball = { x: canvas.width / 2, y: 60, r: 30, vy: 0 };
+const gravity = 0.5;
+const bounce = 0.75; // 튈 때 속도가 75%만 남는다
+
+function update() {
+  ball.vy += gravity;
+  ball.y += ball.vy;
+
+  // 바닥에 닿으면 반대로 튀어 오른다
+  if (ball.y + ball.r > floorY) {
+    ball.y = floorY - ball.r;
+    ball.vy = -ball.vy * bounce;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 바닥
+  ctx.fillStyle = "#2c3650";
+  ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
+  ctx.fillStyle = "#e63946";
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
