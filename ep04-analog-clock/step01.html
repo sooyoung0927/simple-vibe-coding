@@ -1,0 +1,45 @@
+<!-- step01: 베이지색 둥근 시계 판(원) 하나를 어두운 배경 한가운데에 그린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep04 아날로그 시계 - step01</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const TWO_PI = Math.PI * 2;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 시계 판 중심과 반지름
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = Math.min(canvas.width, canvas.height) * 0.4;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // 시계 판
+  ctx.fillStyle = "#f5f1e6";
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TWO_PI);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+draw();
+</script>
+</body>
+</html>
