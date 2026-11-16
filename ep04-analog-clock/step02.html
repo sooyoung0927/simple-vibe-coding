@@ -1,0 +1,58 @@
+<!-- step02: 시계 판 둘레에 12개의 눈금을 돌려가며 그린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep04 아날로그 시계 - step02</title>
+<style>
+  body { margin: 0; background: #1d2433; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const TWO_PI = Math.PI * 2;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 시계 판 중심과 반지름
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = Math.min(canvas.width, canvas.height) * 0.4;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // 시계 판
+  ctx.fillStyle = "#f5f1e6";
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TWO_PI);
+  ctx.fill();
+
+  // 눈금 12개
+  for (let i = 0; i < 12; i++) {
+    ctx.save();
+    ctx.rotate(i / 12 * TWO_PI);
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = r * 0.025;
+    ctx.beginPath();
+    ctx.moveTo(0, -r * 0.85);
+    ctx.lineTo(0, -r * 0.75);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+draw();
+</script>
+</body>
+</html>
