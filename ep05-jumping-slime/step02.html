@@ -1,0 +1,55 @@
+<!-- step02: 중력을 줘서 슬라임이 올라갔다 내려오며 통통 뛴다. (속도에 가속이 붙는다) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep05 점프하는 슬라임 - step02</title>
+<style>
+  body { margin: 0; background: #1f2a44; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const groundY = canvas.height * 0.7;   // 바닥 높이
+const R = 50;                          // 슬라임 반지름
+
+let x = canvas.width / 2;
+let y = groundY;
+let vy = 0;                // 세로 속도 (위로 갈수록 음수)
+const gravity = 0.8;       // 중력: 매 프레임 속도가 늘어난다
+
+function update() {
+  vy += gravity;
+  y += vy;
+  if (y >= groundY) {      // 바닥에 닿으면 다시 점프
+    y = groundY;
+    vy = -16;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#2c3a5c";
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+  ctx.fillStyle = "#6fdc7a";
+  ctx.beginPath();
+  ctx.arc(x, y - R, R, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
