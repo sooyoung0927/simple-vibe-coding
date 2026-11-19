@@ -1,0 +1,64 @@
+<!-- step03: 바닥에 그림자를 깔고, 높이 뜰수록 작고 연하게 만든다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep05 점프하는 슬라임 - step03</title>
+<style>
+  body { margin: 0; background: #1f2a44; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const groundY = canvas.height * 0.7;   // 바닥 높이
+const R = 50;                          // 슬라임 반지름
+
+let x = canvas.width / 2;
+let y = groundY;
+let vy = 0;                // 세로 속도 (위로 갈수록 음수)
+const gravity = 0.8;       // 중력: 매 프레임 속도가 늘어난다
+
+function update() {
+  vy += gravity;
+  y += vy;
+  if (y >= groundY) {      // 바닥에 닿으면 다시 점프
+    y = groundY;
+    vy = -16;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#2c3a5c";
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+  // 그림자: 높이 뜰수록 작고 연해진다
+  const height = groundY - y;
+  const far = Math.min(height / 160, 1);   // 0(바닥) ~ 1(가장 높음)
+  ctx.fillStyle = "rgba(0, 0, 0, " + (0.35 - far * 0.2) + ")";
+  ctx.beginPath();
+  ctx.ellipse(x, groundY + 6, R * (1 - far * 0.4), 10 * (1 - far * 0.4), 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#6fdc7a";
+  ctx.beginPath();
+  ctx.arc(x, y - R, R, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
