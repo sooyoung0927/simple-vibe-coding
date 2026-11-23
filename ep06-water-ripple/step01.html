@@ -1,0 +1,27 @@
+<!-- step01: 원 하나(파문의 고리)를 화면 가운데 그린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step01</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+ctx.strokeStyle = "white";
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.arc(canvas.width / 2, canvas.height / 2, 60, 0, Math.PI * 2);
+ctx.stroke();
+</script>
+</body>
+</html>
