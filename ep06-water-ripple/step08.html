@@ -1,0 +1,91 @@
+<!-- step08: 마무리: 물빛 배경, 원근감 있는 타원, 고리가 얇아지는 선, 중심 반짝임, 창 크기 대응. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step08</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let ripples = [];
+
+// 창 크기가 바뀌면 캔버스도 맞춘다
+window.addEventListener("resize", function () {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+function addRipple(x, y) {
+  ripples.push({
+    x: x, y: y, age: 0,
+    maxR: 60 + Math.random() * 140,          // 크기가 제각각
+    duration: 70 + Math.random() * 60,       // 속도도 제각각
+    hue: 190 + Math.random() * 40            // 파란~하늘색 사이
+  });
+}
+
+canvas.addEventListener("click", function (e) {
+  addRipple(e.clientX, e.clientY);
+});
+
+// 가끔씩 아무 데나 빗방울이 떨어진다
+function rain() {
+  addRipple(Math.random() * canvas.width, Math.random() * canvas.height);
+  setTimeout(rain, 200 + Math.random() * 700);
+}
+rain();
+
+function draw() {
+  // 물빛 배경 (위는 어둡고 아래는 밝게)
+  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, "#0b2540");
+  bg.addColorStop(1, "#14507a");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (const p of ripples) {
+    for (let k = 0; k < 3; k++) {
+      const t = (p.age - k * 12) / p.duration;   // 0~1 진행도
+      if (t <= 0 || t >= 1) continue;
+      const eased = 1 - Math.pow(1 - t, 3);      // 처음 빠르고 끝에 느려짐
+      ctx.globalAlpha = (1 - t) * (1 - t);        // 끝으로 갈수록 더 부드럽게 사라짐
+      ctx.lineWidth = 3.5 * (1 - t) + 0.5;        // 퍼질수록 선이 얇아짐
+      ctx.strokeStyle = "hsl(" + p.hue + ", 80%, 80%)";
+      ctx.beginPath();
+      // 비스듬히 내려다본 느낌: 세로를 눌러 타원으로
+      ctx.ellipse(p.x, p.y, p.maxR * eased, p.maxR * eased * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  // 물방울이 닿은 순간 반짝
+  for (const p of ripples) {
+    const flash = 1 - p.age / 12;
+    if (flash <= 0) continue;
+    ctx.globalAlpha = flash;
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4 * flash + 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop() {
+  for (const p of ripples) p.age += 1;
+  ripples = ripples.filter(p => p.age < p.duration + 24);
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
