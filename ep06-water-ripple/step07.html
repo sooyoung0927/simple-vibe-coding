@@ -1,0 +1,69 @@
+<!-- step07: 빗방울이 무작위 위치·크기·속도·색으로 저절로 떨어진다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step07</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let ripples = [];
+
+function addRipple(x, y) {
+  ripples.push({
+    x: x, y: y, age: 0,
+    maxR: 60 + Math.random() * 140,          // 크기가 제각각
+    duration: 70 + Math.random() * 60,       // 속도도 제각각
+    hue: 190 + Math.random() * 40            // 파란~하늘색 사이
+  });
+}
+
+canvas.addEventListener("click", function (e) {
+  addRipple(e.clientX, e.clientY);
+});
+
+// 가끔씩 아무 데나 빗방울이 떨어진다
+function rain() {
+  addRipple(Math.random() * canvas.width, Math.random() * canvas.height);
+  setTimeout(rain, 200 + Math.random() * 700);
+}
+rain();
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 3;
+  for (const p of ripples) {
+    for (let k = 0; k < 3; k++) {
+      const t = (p.age - k * 12) / p.duration;   // 0~1 진행도
+      if (t <= 0 || t >= 1) continue;
+      const eased = 1 - Math.pow(1 - t, 3);      // 처음 빠르고 끝에 느려짐
+      ctx.globalAlpha = 1 - t;
+      ctx.strokeStyle = "hsl(" + p.hue + ", 80%, 80%)";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.maxR * eased, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop() {
+  for (const p of ripples) p.age += 1;
+  ripples = ripples.filter(p => p.age < p.duration + 24);
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
