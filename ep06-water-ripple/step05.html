@@ -1,0 +1,53 @@
+<!-- step05: 한 번 클릭에 고리 3개가 간격을 두고 따라 퍼진다. (진짜 물결은 겹겹이) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step05</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const maxR = 200;
+let ripples = [];   // 지금 퍼지고 있는 파문들
+
+canvas.addEventListener("click", function (e) {
+  ripples.push({ x: e.clientX, y: e.clientY, r: 0 });
+});
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 3;
+  for (const p of ripples) {
+    for (let k = 0; k < 3; k++) {
+      const r = p.r - k * 25;      // 뒤따르는 고리일수록 더 작다
+      if (r <= 0) continue;
+      ctx.globalAlpha = Math.max(0, 1 - r / maxR);
+      ctx.strokeStyle = "white";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop() {
+  for (const p of ripples) p.r += 1.5;
+  ripples = ripples.filter(p => p.r - 50 < maxR);   // 다 퍼진 파문은 지운다
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
