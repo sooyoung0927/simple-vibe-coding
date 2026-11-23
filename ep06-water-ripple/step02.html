@@ -1,0 +1,41 @@
+<!-- step02: 고리가 프레임마다 조금씩 커져서 퍼져 나간다. (끝까지 퍼지면 다시 시작) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step02</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const maxR = 200;   // 최대 반지름
+let r = 0;          // 지금 반지름
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function loop() {
+  r += 1.5;
+  if (r > maxR) r = 0;
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
