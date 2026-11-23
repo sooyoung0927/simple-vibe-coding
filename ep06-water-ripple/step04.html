@@ -1,0 +1,49 @@
+<!-- step04: 화면을 클릭한 자리에서 파문이 생긴다. (여러 개를 동시에 관리) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step04</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const maxR = 200;
+let ripples = [];   // 지금 퍼지고 있는 파문들
+
+canvas.addEventListener("click", function (e) {
+  ripples.push({ x: e.clientX, y: e.clientY, r: 0 });
+});
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 3;
+  for (const p of ripples) {
+    ctx.globalAlpha = 1 - p.r / maxR;
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop() {
+  for (const p of ripples) p.r += 1.5;
+  ripples = ripples.filter(p => p.r < maxR);   // 다 퍼진 파문은 지운다
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
