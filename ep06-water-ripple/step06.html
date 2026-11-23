@@ -1,0 +1,55 @@
+<!-- step06: 고리가 처음엔 빠르게 퍼지다 점점 느려진다. (이징: 감속) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep06 물결 파문 - step06</title>
+<style>
+  body { margin: 0; background: #0b2540; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const maxR = 200;
+const duration = 100;   // 파문이 퍼지는 데 걸리는 프레임 수
+let ripples = [];
+
+canvas.addEventListener("click", function (e) {
+  ripples.push({ x: e.clientX, y: e.clientY, age: 0 });
+});
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 3;
+  for (const p of ripples) {
+    for (let k = 0; k < 3; k++) {
+      const t = (p.age - k * 12) / duration;     // 0~1 진행도
+      if (t <= 0 || t >= 1) continue;
+      const eased = 1 - Math.pow(1 - t, 3);      // 처음 빠르고 끝에 느려짐
+      ctx.globalAlpha = 1 - t;
+      ctx.strokeStyle = "white";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, maxR * eased, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop() {
+  for (const p of ripples) p.age += 1;
+  ripples = ripples.filter(p => p.age < duration + 24);
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
