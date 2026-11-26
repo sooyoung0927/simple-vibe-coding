@@ -1,0 +1,49 @@
+<!-- step03: 방향이 조금씩 랜덤하게 틀어져서 흔들흔들 떠다닌다. (부드러운 방향 변화) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep07 반딧불이 - step03</title>
+<style>
+  body { margin: 0; background: #050a14; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let x = canvas.width / 2;
+let y = canvas.height / 2;
+let angle = 0;       // 가는 방향
+const speed = 1;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 방향을 아주 조금씩만 바꾼다 (-0.1 ~ +0.1)
+  angle = angle + (Math.random() - 0.5) * 0.2;
+  x = x + Math.cos(angle) * speed;
+  y = y + Math.sin(angle) * speed;
+
+  // 화면 밖으로 나가면 반대쪽으로
+  if (x < 0) x = canvas.width;
+  if (x > canvas.width) x = 0;
+  if (y < 0) y = canvas.height;
+  if (y > canvas.height) y = 0;
+
+  ctx.fillStyle = "#d8ff5a";
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
