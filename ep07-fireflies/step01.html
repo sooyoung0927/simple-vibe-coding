@@ -1,0 +1,26 @@
+<!-- step01: 원 하나(반딧불이 몸)를 화면 가운데 그린다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep07 반딧불이 - step01</title>
+<style>
+  body { margin: 0; background: #050a14; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+ctx.fillStyle = "#d8ff5a";
+ctx.beginPath();
+ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, Math.PI * 2);
+ctx.fill();
+</script>
+</body>
+</html>
