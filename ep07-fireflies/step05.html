@@ -1,0 +1,55 @@
+<!-- step05: 빛이 사인파로 부드럽게 깜빡인다. (밝아졌다 어두워졌다) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep07 반딧불이 - step05</title>
+<style>
+  body { margin: 0; background: #050a14; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let x = canvas.width / 2;
+let y = canvas.height / 2;
+let angle = 0;
+const speed = 1;
+let time = 0;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  angle = angle + (Math.random() - 0.5) * 0.2;
+  x = x + Math.cos(angle) * speed;
+  y = y + Math.sin(angle) * speed;
+
+  if (x < 0) x = canvas.width;
+  if (x > canvas.width) x = 0;
+  if (y < 0) y = canvas.height;
+  if (y > canvas.height) y = 0;
+
+  // sin은 -1 ~ 1 → 0 ~ 1 로 바꿔서 밝기로 쓴다
+  time = time + 0.05;
+  const brightness = (Math.sin(time) + 1) / 2;
+
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, 25);
+  glow.addColorStop(0, "rgba(216, 255, 90, " + (0.9 * brightness) + ")");
+  glow.addColorStop(1, "rgba(216, 255, 90, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, 25, 0, Math.PI * 2);
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
