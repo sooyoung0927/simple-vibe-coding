@@ -1,0 +1,51 @@
+<!-- step04: 원 둘레에 부드러운 빛번짐(글로우)을 더한다. (방사형 그라데이션) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep07 반딧불이 - step04</title>
+<style>
+  body { margin: 0; background: #050a14; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let x = canvas.width / 2;
+let y = canvas.height / 2;
+let angle = 0;
+const speed = 1;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  angle = angle + (Math.random() - 0.5) * 0.2;
+  x = x + Math.cos(angle) * speed;
+  y = y + Math.sin(angle) * speed;
+
+  if (x < 0) x = canvas.width;
+  if (x > canvas.width) x = 0;
+  if (y < 0) y = canvas.height;
+  if (y > canvas.height) y = 0;
+
+  // 가운데는 밝고 바깥으로 갈수록 투명해지는 빛
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, 25);
+  glow.addColorStop(0, "rgba(216, 255, 90, 0.9)");
+  glow.addColorStop(1, "rgba(216, 255, 90, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, 25, 0, Math.PI * 2);
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
