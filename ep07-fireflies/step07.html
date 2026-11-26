@@ -1,0 +1,72 @@
+<!-- step07: 지나간 자리에 옅은 잔상(꼬리)이 남는다. (화면을 지우지 않고 어둡게 덮기) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ep07 반딧불이 - step07</title>
+<style>
+  body { margin: 0; background: #050a14; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 반딧불이 한 마리를 만드는 함수 (값을 전부 무작위로)
+function makeFirefly() {
+  return {
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    angle: Math.random() * Math.PI * 2,
+    speed: 0.3 + Math.random() * 0.9,
+    size: 12 + Math.random() * 18,
+    hue: 60 + Math.random() * 40,          // 노랑 ~ 연두
+    time: Math.random() * 10,              // 깜빡임 시작 위치가 제각각
+    blinkSpeed: 0.02 + Math.random() * 0.04,
+  };
+}
+
+const fireflies = [];
+for (let i = 0; i < 40; i++) {
+  fireflies.push(makeFirefly());
+}
+
+function draw() {
+  // 지우개 대신 배경색을 반투명하게 덮어서, 이전 모습이 천천히 사라지게 한다
+  ctx.fillStyle = "rgba(5, 10, 20, 0.15)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (const f of fireflies) {
+    f.angle = f.angle + (Math.random() - 0.5) * 0.2;
+    f.x = f.x + Math.cos(f.angle) * f.speed;
+    f.y = f.y + Math.sin(f.angle) * f.speed;
+
+    if (f.x < 0) f.x = canvas.width;
+    if (f.x > canvas.width) f.x = 0;
+    if (f.y < 0) f.y = canvas.height;
+    if (f.y > canvas.height) f.y = 0;
+
+    f.time = f.time + f.blinkSpeed;
+    const brightness = (Math.sin(f.time) + 1) / 2;
+
+    const color = "hsla(" + f.hue + ", 100%, 65%, ";
+    const glow = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size);
+    glow.addColorStop(0, color + (0.9 * brightness) + ")");
+    glow.addColorStop(1, color + "0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
